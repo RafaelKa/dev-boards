@@ -91,7 +91,7 @@ POWER_SUPPLY_PROPERTIES["BATTERY_CONNECTED"]=$((($POWER_OP_MODE & 0x20) != 0))  
 #     # Reservations can not be changed                                                      #
 #  4  #                                                                                      #
 #     #                                                                                      #
-POWER_SUPPLY_PROPERTIES["RESERVATIONS_CAN_NOT_BE_CHANGED"]=$((($POWER_OP_MODE & 0x10) != 0)) #
+                                                                                             #
 ##############################################################################################
 #     # Indicate whether the battery charger entered into activation mode                    #
 #  3  # 0: Did not enter the cell activation mode                                            #
