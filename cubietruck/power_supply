@@ -101,7 +101,7 @@ POWER_SUPPLY_PROPERTIES["CHARGER_IN_CELL_ACTIVATION_MODE"]=$((($POWER_OP_MODE & 
 #     # Indicates the charging current is less than the expected current                     #
 #  2  # 0: The actual charge current equal to the desired current                            #
 #     # 1: The actual charge current is less than the desired current                        #
-POWER_SUPPLY_PROPERTIES["BATTERY_NOT_FULL"]=$((($POWER_OP_MODE & 0x04) != 0))                #
+POWER_SUPPLY_PROPERTIES["BATTERY_LOW_CHARGE_CURRENT"]=$((($POWER_OP_MODE & 0x04) != 0))      #
 ##############################################################################################
 #     # Reserved, can not be changed                                                         #
 #  1  #                                                                                      #
