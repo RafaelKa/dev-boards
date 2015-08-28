@@ -202,7 +202,14 @@ POWER_SUPPLY_PROPERTIES["BATTERY_VOLTAGE"]=$(echo "$(( $(($(i2cget -y -f 0 0x34 
 POWER_SUPPLY_PROPERTIES["BATTLEVEL"]=$(echo "(${POWER_SUPPLY_PROPERTIES[BATTERY_VOLTAGE]} - 3500)/7"|bc)
 POWER_SUPPLY_PROPERTIES["BATTERY_CHARGE_CURRENT"]=$(( $(($(i2cget -y -f 0 0x34 0x7A) << 4)) | $(($(i2cget -y -f 0 0x34 0x7B) & 0x0f)) ))
 POWER_SUPPLY_PROPERTIES["BATTERY_DISCHARGE_CURRENT"]=$(( $(($(i2cget -y -f 0 0x34 0x7C) << 5)) | $(($(i2cget -y -f 0 0x34 0x7D) & 0x1f)) ))
-POWER_SUPPLY_PROPERTIES["ACIN_VOLTAGE"]=$(echo "$(( $(($(i2cget -y -f 0 0x34 0x56) << 4)) | $(($(i2cget -y -f 0 0x34 0x57) & 0x0f)) )) * 1.7"|bc)
+
+if [[ POWER_SUPPLY_PROPERTIES["ACIN"] == 1 ]] ; then
+	POWER_SUPPLY_PROPERTIES["ACIN_VOLTAGE"]=$(echo "$(( $(($(i2cget -y -f 0 0x34 0x56) << 4)) | $(($(i2cget -y -f 0 0x34 0x57) & 0x0f)) )) * 1.7"|bc)
+else
+	POWER_SUPPLY_PROPERTIES["ACIN_VOLTAGE"]=0
+fi
+
+
 POWER_SUPPLY_PROPERTIES["ACIN_CURRENT"]=$(echo "$(( $(($(i2cget -y -f 0 0x34 0x58) << 4)) | $(($(i2cget -y -f 0 0x34 0x59) & 0x0f)) )) * 0.625"|bc)
 POWER_SUPPLY_PROPERTIES["VBUS_VOLTAGE"]=$(echo "$(( $(($(i2cget -y -f 0 0x34 0x5A) << 4)) | $(($(i2cget -y -f 0 0x34 0x5B) & 0x0f)) )) * 1.7"|bc)
 POWER_SUPPLY_PROPERTIES["VBUS_CURRENT"]=$(echo "$(( $(($(i2cget -y -f 0 0x34 0x5C) << 4)) | $(($(i2cget -y -f 0 0x34 0x5D) & 0x0f)) )) * 0.375"|bc)
