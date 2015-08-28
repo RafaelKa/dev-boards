@@ -1,0 +1,253 @@
+#!/usr/bin/env bash
+# This script shows power_supply properties from AXP209
+# You can run it without arguments or with ALL as argument to show all available properties.
+# Or you can specify a list of properties as argument, which you want to show.
+# If you want only one property, this script prints it without property name!
+
+declare -A POWER_SUPPLY_PROPERTIES
+
+
+# 0x80  0x40  0x20  0x10  0x08  0x04  0x02  0x01
+#  7     6     5     4     3     2     1     0
+
+# enable all messure properties, ACIN-, VBUS voltage/current &co.
+i2cset -y -f 0 0x34 0x82 0xFF
+# Set Defaults for "10.13 REG 32H:Shutdown settings, battery detection, and CHGLED Pin control"
+i2cset -y -f 0 0x34 0x32 0x42
+##########################################################################################
+# Registers Description for "Power input status" REG 00H (0x00)                          #
+        POWER_STATUS=$(i2cget -y -f 0 0x34 0x00)                                         #
+##########################################################################################
+#     #                                                                                  #
+# Bit #                       Description                                                #
+#     #                                                                                  #
+##########################################################################################
+#     # ACIN presence indication                                                         #
+#  7  # 0: ACIN does not exist                                                           #
+#     # 1: ACIN exist                                                                    #
+POWER_SUPPLY_PROPERTIES["ACIN"]=$((($POWER_STATUS & 0x80) != 0))                         #
+##########################################################################################
+#     # Instructions ACIN is available                                                   #
+#  6  #                                                                                  #
+#     #                                                                                  #
+POWER_SUPPLY_PROPERTIES["ACIN_INSTRUCTIONS_AVAILABLE"]=$((($POWER_STATUS & 0x40) != 0))  #
+##########################################################################################
+#     # VBUS presence indication                                                         #
+#  5  # 0: VBUS does not exist                                                           #
+#     # 1: VBUS exists                                                                   #
+POWER_SUPPLY_PROPERTIES["VBUS_INDICATION_AVAILABLE"]=$((($POWER_STATUS & 0x20) != 0))    #
+##########################################################################################
+#     # Indicates if VBUS is useable                                                     #
+#  4  #                                                                                  #
+#     #                                                                                  #
+POWER_SUPPLY_PROPERTIES["VBUS_IS_USABLE"]=$((($POWER_STATUS & 0x10) != 0))               #
+##########################################################################################
+#     # Indicating whether the VBUS voltage is above V_HOLD before used.                 #
+#  3  #                                                                                  #
+#     #                                                                                  #
+POWER_SUPPLY_PROPERTIES["VBUS_VOLTAGE_IS_ABOVE_V_HOLD"]=$((($POWER_STATUS & 0x08) != 0)) #
+##########################################################################################
+#     # Indicates that the battery current direction                                     #
+#  2  # 0: The battery discharging                                                       #
+#     # 1: The battery is charging                                                       #
+POWER_SUPPLY_PROPERTIES["BATTERY_CONSUMPTION"]=$((($POWER_STATUS & 0x04) == 0))          #
+##########################################################################################
+#     # Indicating whether ACIN and VBUS input short circuit on PCB                      #
+#  1  #                                                                                  #
+#     #                                                                                  #
+POWER_SUPPLY_PROPERTIES["ACIN_AND_VBUS_SHORT_CIRCUIT"]=$((($POWER_STATUS & 0x02) != 0))  #
+##########################################################################################
+#     # Indicating whether the boot source is ACIN or VBUS                               #
+#  0  # 0: Boot source is NOT ACIN/VBUS                                                  #
+#     # 1: Boot source is ACIN/VBUS                                                      #
+POWER_SUPPLY_PROPERTIES["BOOT_SOURCE_IS_ACIN_OR_VBUS"]=$((($POWER_STATUS & 0x01) != 0))  #
+##########################################################################################
+
+
+##############################################################################################
+# Registers Description for:                                                                 #
+# "Power mode and charge status indication" REG 01H (0x01)                                   #
+        POWER_OP_MODE=$(i2cget -y -f 0 0x34 0x01)                                            #
+##############################################################################################
+#     #                                                                                      #
+# Bit #                       Description                                                    #
+#     #                                                                                      #
+##############################################################################################
+#     # Indicates AXP209 over-temperature                                                    #
+#  7  # 0: Not too hot                                                                       #
+#     # 1: Over Temperature                                                                  #
+POWER_SUPPLY_PROPERTIES["AXP209_IS_OVER_TEMPERATURE"]=$((($POWER_OP_MODE & 0x80) != 0))      #
+##############################################################################################
+#     # Charging indicator                                                                   #
+#  6  # 0: Not charging or charging has been completed                                       #
+#     # 1: Charging                                                                          #
+POWER_SUPPLY_PROPERTIES["BATTERY_CHARGING"]=$((($POWER_OP_MODE & 0x40) != 0))                #
+##############################################################################################
+#     # Battery connected indicator                                                          #
+#  5  # 0: No battery is connected to the AXP209                                             #
+#     # 1: The battery is connected to the AXP209                                            #
+POWER_SUPPLY_PROPERTIES["BATTERY_CONNECTED"]=$((($POWER_OP_MODE & 0x20) != 0))               #
+##############################################################################################
+#     # Reservations can not be changed                                                      #
+#  4  #                                                                                      #
+#     #                                                                                      #
+POWER_SUPPLY_PROPERTIES["RESERVATIONS_CAN_NOT_BE_CHANGED"]=$((($POWER_OP_MODE & 0x10) != 0)) #
+##############################################################################################
+#     # Indicate whether the battery charger entered into activation mode                    #
+#  3  # 0: Did not enter the cell activation mode                                            #
+#     # 1: Has entered the cell activation mode                                              #
+POWER_SUPPLY_PROPERTIES["CHARGER_IN_CELL_ACTIVATION_MODE"]=$((($POWER_OP_MODE & 0x08) != 0)) #
+##############################################################################################
+#     # Indicates the charging current is less than the expected current                     #
+#  2  # 0: The actual charge current equal to the desired current                            #
+#     # 1: The actual charge current is less than the desired current                        #
+POWER_SUPPLY_PROPERTIES["BATTERY_NOT_FULL"]=$((($POWER_OP_MODE & 0x04) != 0))                #
+##############################################################################################
+#     # Reserved, can not be changed                                                         #
+#  1  #                                                                                      #
+#     #                                                                                      #
+                                                                                             #
+##############################################################################################
+#     # Reserved, can not be changed                                                         #
+#  0  #                                                                                      #
+#     #                                                                                      #
+                                                                                             #
+##############################################################################################
+
+######################################################################################################
+# Registers Description for:                                                                         #
+# "DC-DC2 output voltage setting" REG 23H (0x23)                                                     #
+        DC_DC2_OUTPUT_VOLTAGE=$(i2cget -y -f 0 0x34 0x23)                                            #
+######################################################################################################
+#     #                                                                                              #
+# Bit #                       Description                                                            #
+#     #                                                                                              #
+######################################################################################################
+#     # Reserved, can not be changed                                                                 #
+#  7  #                                                                                              #
+#  6  #                                                                                              #
+                                                                                                     #
+######################################################################################################
+#     # DC-DC2 The output voltage is set                                                             #
+#  5  #   0.7 - 2.275V | 25mV/step                                                                   #
+#  0  #   Vout = [0.7+ (Bit5-0) * 0.025]V                                                            #
+POWER_SUPPLY_PROPERTIES["DC_DC2_VOUT"]=$(echo "0.7 + $(($DC_DC2_OUTPUT_VOLTAGE & 0x3F)) * 0.025"|bc) #
+######################################################################################################
+
+
+####################################################################################ä#################
+# Registers Description for:                                                                         #
+# "DC-DC3 output voltage setting" REG 27H (0x27)                                                     #
+        DC_DC3_OUTPUT_VOLTAGE=$(i2cget -y -f 0 0x34 0x27)                                            #
+######################################################################################################
+#     #                                                                                              #
+# Bit #                       Description                                                            #
+#     #                                                                                              #
+######################################################################################################
+#     # Reserved, can not be changed                                                                 #
+#  7  #                                                                                              #
+#  6  #                                                                                              #
+                                                                                                     #
+######################################################################################################
+#     # DC-DC3 output voltage is set                                                                 #
+#  5  #   0.7 - 3.5V | 25mV/step                                                                     #
+#  0  #   Vout = [0.7+ (Bit5-0) * 0.025]V                                                            #
+POWER_SUPPLY_PROPERTIES["DC_DC3_VOUT"]=$(echo "0.7 + $(($DC_DC3_OUTPUT_VOLTAGE & 0x3F)) * 0.025"|bc) #
+######################################################################################################
+
+
+############################################################################################################
+# Registers Description for:                                                                               #
+# "LDO2/LDO4 output voltagesetting" REG 28H (0x28)                                                         #
+        LDO2_AND_LDO4_OUTPUT_VOLTAGE=$(i2cget -y -f 0 0x34 0x28)                                           #
+############################################################################################################
+#     #                                                                                                    #
+# Bit #                       Description                                                                  #
+#     #                                                                                                    #
+############################################################################################################
+#     # LDO2 output voltage setting                                                                        #
+#  7  #   1.8 - 3.3V | 100mV/step                                                                          #
+#  4  #   Vout = [1.8+ (Bit7-4) * 0.1] V                                                                   #
+POWER_SUPPLY_PROPERTIES["LDO2_VOUT"]=$(echo "1.8 + $(($LDO2_AND_LDO4_OUTPUT_VOLTAGE & 0xF0))/16 * 0.1"|bc) #
+############################################################################################################
+#     # LDO4 output voltage setting                                                                        #
+#  3  #   1.25 - 3.3V | 100mV/step                                                                         #
+#  0  #                                                                                                    #
+        LDO4_VOUT_VALUES=(1.25 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.5 2.7 2.8 3.0 3.1 3.2 3.3)                #
+POWER_SUPPLY_PROPERTIES["LDO4_VOUT"]=${LDO4_VOUT_VALUES[$(($LDO2_AND_LDO4_OUTPUT_VOLTAGE & 0x0F))]}        #
+############################################################################################################
+
+##################################################################################################
+# Registers Description for:                                                                     #
+# "LDO3 output voltage setting" REG 29H (0x29)                                                   #
+        LDO3_OUTPUT_VOLTAGE=$(i2cget -y -f 0 0x34 0x29)                                          #
+##################################################################################################
+#     #                                                                                          #
+# Bit #                       Description                                                        #
+#     #                                                                                          #
+##################################################################################################
+#     # LDO3 Mode selection:                                                                     #
+#  7  #   0: LDO Mode, the voltage is set by[6: 0]                                               #
+#     #   1: enable/disable control mode, voltage is determined by LDO3IN.                       #
+POWER_SUPPLY_PROPERTIES["LDO3_MODE"]=$((($LDO3_OUTPUT_VOLTAGE & 0x80) != 0))                     #
+##################################################################################################
+#     # LDO3 output voltage settings                                                             #
+#  6  #   0.7 - 2.25V | 25mV/step                                                                #
+#  0  #   Vout = [0.7+ (Bit6-0) * 0.025] V                                                       #
+POWER_SUPPLY_PROPERTIES["LDO3_VOUT"]=$(echo "0.7 + $(($LDO3_OUTPUT_VOLTAGE & 0x7F)) * 0.025"|bc) #
+##################################################################################################
+
+POWER_SUPPLY_PROPERTIES["BATTERY_VOLTAGE"]=$(echo "$(( $(($(i2cget -y -f 0 0x34 0x78) << 4)) | $(($(i2cget -y -f 0 0x34 0x79) & 0x0f)) )) * 1.1"|bc)
+
+POWER_SUPPLY_PROPERTIES["BATTLEVEL"]=$(echo "(${POWER_SUPPLY_PROPERTIES[BATTERY_VOLTAGE]} - 3500)/7"|bc)
+POWER_SUPPLY_PROPERTIES["BATTERY_CHARGE_CURRENT"]=$(( $(($(i2cget -y -f 0 0x34 0x7A) << 4)) | $(($(i2cget -y -f 0 0x34 0x7B) & 0x0f)) ))
+POWER_SUPPLY_PROPERTIES["BATTERY_DISCHARGE_CURRENT"]=$(( $(($(i2cget -y -f 0 0x34 0x7C) << 5)) | $(($(i2cget -y -f 0 0x34 0x7D) & 0x1f)) ))
+POWER_SUPPLY_PROPERTIES["ACIN_VOLTAGE"]=$(echo "$(( $(($(i2cget -y -f 0 0x34 0x56) << 4)) | $(($(i2cget -y -f 0 0x34 0x57) & 0x0f)) )) * 1.7"|bc)
+POWER_SUPPLY_PROPERTIES["ACIN_CURRENT"]=$(echo "$(( $(($(i2cget -y -f 0 0x34 0x58) << 4)) | $(($(i2cget -y -f 0 0x34 0x59) & 0x0f)) )) * 0.625"|bc)
+POWER_SUPPLY_PROPERTIES["VBUS_VOLTAGE"]=$(echo "$(( $(($(i2cget -y -f 0 0x34 0x5A) << 4)) | $(($(i2cget -y -f 0 0x34 0x5B) & 0x0f)) )) * 1.7"|bc)
+POWER_SUPPLY_PROPERTIES["VBUS_CURRENT"]=$(echo "$(( $(($(i2cget -y -f 0 0x34 0x5C) << 4)) | $(($(i2cget -y -f 0 0x34 0x5D) & 0x0f)) )) * 0.375"|bc)
+
+
+function print_one {
+	if [[ ! ${POWER_SUPPLY_PROPERTIES[$1]} ]] ; then
+		#echo "Property \"$1\" doesn't exist!"
+		exit 1;
+	fi
+	echo ${POWER_SUPPLY_PROPERTIES[$1]}
+}
+
+function print_multiple_selected {
+	declare -A NOT_EXISTED_PROPERTY
+	for PROPERTY_NAME in $@ ; do
+		if [ ! ${POWER_SUPPLY_PROPERTIES[$PROPERTY_NAME]} ] ; then
+			NOT_EXISTED_PROPERTY[$PROPERTY_NAME]="NOT_EXISTENT"
+		fi
+	done
+	if [ ${#NOT_EXISTED_PROPERTY[@]} != 0 ] ; then
+		#echo "Properties \"${!NOT_EXISTED_PROPERTY[@]}\" do not exist!"
+		exit 2;
+	fi
+
+	for PROPERTY_NAME in $@ ; do
+		echo "$PROPERTY_NAME = "${POWER_SUPPLY_PROPERTIES[$PROPERTY_NAME]}
+	done
+}
+
+function print_all {
+	for PROPERTY_NAME in "${!POWER_SUPPLY_PROPERTIES[@]}" ; do
+		echo "$PROPERTY_NAME = "${POWER_SUPPLY_PROPERTIES[$PROPERTY_NAME]}
+	done
+}
+
+if [[ $# == 0 || ($# == 1 && $1 == "ALL") ]] ; then
+	print_all
+	exit 0;
+elif [[ $# == 1 && $1 != "ALL" ]] ; then
+	print_one $1
+	exit 0;
+elif [[ $# -ne 1 ]] ; then
+	print_multiple_selected $@
+	exit 0;
+fi
+
+exit 0;
