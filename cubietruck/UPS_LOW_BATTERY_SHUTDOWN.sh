@@ -20,7 +20,7 @@ fi
 
 BATTERY_VOLTAGE=`./power_supply BATTERY_VOLTAGE`
 BATTERY_LEVEL=`./power_supply BATTERY_LEVEL`
-if [[ $BATTERY_VOLTAGE -le 4100 ]]
+if [[ $BATTERY_VOLTAGE -le 3600 ]]
 then
 	BATTERY_VOLTAGE_DECIMAL=$(echo "scale=2; ${BATTERY_VOLTAGE}/1000"|bc -l)V
     echo -e "######################################################
