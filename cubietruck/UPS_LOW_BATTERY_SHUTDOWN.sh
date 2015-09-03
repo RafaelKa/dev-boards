@@ -5,21 +5,19 @@
 
 DATE=`date +"%Y.%m.%d %T"`
 
-BATTERY_CONNECTED=`./power_supply BATTERY_CONNECTED`
+BATTERY_CONNECTED=`power_supply BATTERY_CONNECTED`
 if [ $BATTERY_CONNECTED != 1 ] ; then
 	echo "Battery not connected!"
     exit
 fi
 
 
-BATTERY_ONLINE=`./power_supply BATTERY_ONLINE`
+BATTERY_ONLINE=`power_supply BATTERY_ONLINE`
 if [[ $BATTERY_ONLINE -eq 0 ]] ; then
 	echo "Battery not consumed!"
     exit
 fi
 
-BATTERY_VOLTAGE=`./power_supply BATTERY_VOLTAGE`
-BATTERY_LEVEL=`./power_supply BATTERY_LEVEL`
 if [[ $BATTERY_VOLTAGE -le 3600 ]]
 then
 	BATTERY_VOLTAGE_DECIMAL=$(echo "scale=2; ${BATTERY_VOLTAGE}/1000"|bc -l)V
