@@ -2,6 +2,7 @@
 # This script is for cron
 #
 
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 DATE=`date +"%Y.%m.%d %T"`
 

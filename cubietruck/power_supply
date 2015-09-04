@@ -4,8 +4,9 @@
 # Or you can specify a list of properties as argument, which you want to show.
 # If you want only one property, this script prints it without property name!
 
-declare -A POWER_SUPPLY_PROPERTIES
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
+declare -A POWER_SUPPLY_PROPERTIES
 
 # 0x80  0x40  0x20  0x10  0x08  0x04  0x02  0x01
 #  7     6     5     4     3     2     1     0
