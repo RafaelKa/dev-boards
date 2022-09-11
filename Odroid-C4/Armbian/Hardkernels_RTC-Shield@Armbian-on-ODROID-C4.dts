@@ -1,0 +1,39 @@
+dts-v1/;
+/plugin/;
+
+/ {
+    /*
+     * This file provides possibility to set Hardkernels "RTC Shield"(https://www.hardkernel.com/shop/rtc-shield/) as /dev/rtc0 on ODROID C4.
+     *
+     * How to use:
+     *   Copy this file to current directory and
+     *   run following command
+     *     sudo armbian-add-overlay Hardkernels_RTC-Shield@Armbian.dts
+     *   Disable "fake-hwclock"
+     *     sudo systemctl stop fake-hwclock.service
+     *     sudo systemctl disable fake-hwclock.service
+     *
+     * For scripts:
+     *   wget https://raw.githubusercontent.com/RafaelKa/dev-boards/master/Odroid-C4/Armbian/Hardkernels_RTC-Shield@Armbian-on-ODROID-C4.dts
+     *   sudo armbian-add-overlay Hardkernels_RTC-Shield@Armbian.dts
+     *   sudo systemctl stop fake-hwclock.service
+     *   sudo systemctl disable fake-hwclock.service
+     */
+    fragment@0 {
+        target-path = "/aliases";
+        __overlay__ {
+            rtc0 = "/soc/bus@ffd00000/i2c@1d000/pcf8563@51";
+            rtc1 = "/soc/bus@ff800000/rtc@0a8";
+        };
+    };
+
+    fragment@1 {
+        target-path = "/soc/bus@ffd00000/i2c@1d000";
+        __overlay__ {
+            pcf8563@51 {
+                compatible = "nxp,pcf8563";
+                reg = <0x51>;
+            };
+        };
+    };
+};
